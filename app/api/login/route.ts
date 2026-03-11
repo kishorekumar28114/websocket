@@ -40,6 +40,8 @@ export async function POST(req: Request) {
 
   response.cookies.set("token", token, {
   httpOnly: true,
+  secure: true,
+  sameSite: "none",
   path: "/"
 })
   return response
