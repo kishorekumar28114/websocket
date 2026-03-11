@@ -16,7 +16,7 @@ export default function ChatPage(){
   // connect socket
   useEffect(()=>{
 
-    const newSocket = io("http://localhost:4000",{
+    const newSocket = io("https://websocket-s7zl.onrender.com",{
       withCredentials:true
     })
 
