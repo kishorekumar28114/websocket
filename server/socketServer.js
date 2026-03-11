@@ -116,6 +116,8 @@ socket.on("stop_typing",()=>{
 
 })
 
-server.listen(4000,()=>{
-  console.log("WebSocket server running on port 4000")
+const PORT = process.env.PORT || 4000
+
+server.listen(PORT, () => {
+  console.log("WebSocket server running on port", PORT)
 })
