@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from "react"
 import { io, Socket } from "socket.io-client"
 
+function getCookie(name:string){
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if(parts.length===2) return parts.pop()?.split(";").shift()
+}
+
 export default function ChatPage(){
 
   const [socket,setSocket] = useState<Socket | null>(null)
@@ -13,32 +19,33 @@ export default function ChatPage(){
   const typingTimeout = useRef<NodeJS.Timeout | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
-  // connect socket
   useEffect(()=>{
 
+    const token = getCookie("token")
+
     const newSocket = io("https://websocket-s7zl.onrender.com",{
-      withCredentials:true,
+      auth:{
+        token:token
+      },
       transports:["websocket"]
     })
 
     setSocket(newSocket)
 
     newSocket.on("connect",()=>{
-      console.log("Connected to socket:", newSocket.id)
-    })
-
-    newSocket.on("receive_message",(data)=>{
-      console.log("incoming message:",data)
-      setMessages(prev=>[...prev,data])
+      console.log("Connected:",newSocket.id)
     })
 
     newSocket.on("chat_history",(history)=>{
-      console.log("chat history:",history)
       setMessages(history)
     })
 
+    newSocket.on("receive_message",(data)=>{
+      setMessages(prev=>[...prev,data])
+    })
+
     newSocket.on("user_typing",(data)=>{
-      setTypingUser(data.username + " is typing...")
+      setTypingUser(`${data.username} is typing...`)
     })
 
     newSocket.on("user_stop_typing",()=>{
@@ -51,26 +58,22 @@ export default function ChatPage(){
 
   },[])
 
-  // auto scroll
   useEffect(()=>{
     chatEndRef.current?.scrollIntoView({behavior:"smooth"})
   },[messages])
 
   const sendMessage = ()=>{
 
-    if(!message.trim()) return
-    if(!socket) return
+    if(!message.trim() || !socket) return
 
-    socket.emit("send_message",{
-      message:message
-    })
+    socket.emit("send_message",{message})
 
     setMessage("")
     socket.emit("stop_typing")
 
   }
 
-  const handleTyping = (value:string)=>{
+  const handleTyping=(value:string)=>{
 
     setMessage(value)
 
@@ -82,7 +85,7 @@ export default function ChatPage(){
       clearTimeout(typingTimeout.current)
     }
 
-    typingTimeout.current = setTimeout(()=>{
+    typingTimeout.current=setTimeout(()=>{
       socket.emit("stop_typing")
     },1000)
 
@@ -92,9 +95,7 @@ export default function ChatPage(){
 
     <div className="flex flex-col items-center mt-10">
 
-      <h1 className="text-3xl font-bold">
-        Group Chat
-      </h1>
+      <h1 className="text-3xl font-bold">Group Chat</h1>
 
       <div className="border w-96 h-80 overflow-y-scroll mt-4 p-2">
 
@@ -130,5 +131,6 @@ export default function ChatPage(){
       </div>
 
     </div>
+
   )
 }
