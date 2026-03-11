@@ -21,7 +21,7 @@ export default function ChatPage(){
 
   useEffect(()=>{
 
-    const token = getCookie("token")
+    const token = localStorage.getItem("token")
 
     const newSocket = io("https://websocket-s7zl.onrender.com",{
       auth:{

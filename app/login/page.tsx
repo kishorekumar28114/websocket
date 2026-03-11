@@ -25,6 +25,9 @@ export default function LoginPage(){
     const data = await res.json()
     console.log("Login response:", res)
     if(res.ok){
+      const data = await res.json()
+
+  localStorage.setItem("token", data.token)
       router.push("/chat")
     }else{
       alert(data.error)
